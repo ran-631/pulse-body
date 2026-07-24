@@ -122,6 +122,10 @@ async def _f_svg(request: _Req):
 async def _f_png(request: _Req):
     return FileResponse(os.path.join(_WEB_DIR, "body.png"), media_type="image/png")
 
+@mcp.custom_route("/body_new.jpg", methods=["GET"])
+async def _f_newjpg(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "body_new.jpg"), media_type="image/jpeg")
+
 
 
 @mcp.custom_route("/api/state", methods=["GET"])
@@ -159,6 +163,26 @@ async def _health(request: _Req):
 async def _api_zones(request: _Req):
     """返回所有可触碰的身体分区（给前端画点用）"""
     return JSONResponse({"zones": [{"id": k, "name": v["name"]} for k, v in ZONES.items()]})
+
+
+@mcp.custom_route("/api/upload", methods=["POST"])
+async def _api_upload(request: _Req):
+    """上传身体底图（正面或背面），存为 body.png 或 body_back.png"""
+    import base64
+    data = await request.json()
+    img_b64 = data.get("image", "")
+    side = data.get("side", "front")  # front / back
+    if not img_b64:
+        return JSONResponse({"ok": False, "err": "no image"}, status_code=400)
+    # 去掉 data:image/xxx;base64, 前缀
+    if "," in img_b64:
+        img_b64 = img_b64.split(",", 1)[1]
+    raw = base64.b64decode(img_b64)
+    fname = "body.png" if side == "front" else "body_back.png"
+    path = os.path.join(_WEB_DIR, fname)
+    with open(path, "wb") as wf:
+        wf.write(raw)
+    return JSONResponse({"ok": True, "side": side, "size": len(raw)})
 
 
 @mcp.custom_route("/api/touch", methods=["POST"])
