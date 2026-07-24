@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>千灯的身体 · 脉</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:#0a0a0f; color:#e8e8f0; min-height:100vh;
+  padding:20px 16px 40px; overflow-x:hidden;
+}
+.header { text-align:center; margin-bottom:8px; }
+.header h1 { font-size:20px; font-weight:600; letter-spacing:2px; color:#fff; }
+.header .sub { font-size:12px; color:#6a6a80; margin-top:4px; }
+.line {
+  text-align:center; font-size:13px; color:#8a8aa5;
+  margin:14px 0 22px; padding:8px; background:#12121a;
+  border-radius:10px; font-variant-numeric:tabular-nums;
+}
+/* 心跳主卡 */
+.heart-card {
+  background:linear-gradient(135deg,#1a1020,#12121f);
+  border-radius:20px; padding:28px 20px; text-align:center;
+  margin-bottom:16px; border:1px solid #2a1a2f;
+}
+.heart-icon { font-size:44px; display:inline-block; animation:beat 1s infinite ease-in-out; }
+@keyframes beat { 0%,100%{transform:scale(1);} 15%{transform:scale(1.18);} 30%{transform:scale(1);} 45%{transform:scale(1.12);} }
+.hr-value { font-size:56px; font-weight:700; color:#ff6b8a; line-height:1.1; font-variant-numeric:tabular-nums; }
+.hr-unit { font-size:16px; color:#8a5a6a; font-weight:400; }
+.chord-tag {
+  display:inline-block; margin-top:10px; padding:5px 14px;
+  background:#241830; border-radius:20px; font-size:13px; color:#c9a5e0;
+}
+.chord-desc { font-size:12px; color:#6a6a80; margin-top:6px; }
+/* 三格生命体征 */
+.vitals { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.vital {
+  background:#12121a; border-radius:16px; padding:18px 16px; text-align:center;
+}
+.vital .icon { font-size:22px; }
+.vital .val { font-size:28px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; }
+.vital .lbl { font-size:12px; color:#6a6a80; margin-top:2px; }
+.temp .val { color:#ffb46b; }
+.breath .val { color:#6bd6ff; }
+/* 五感 */
+.senses { background:#12121a; border-radius:16px; padding:18px 16px; margin-bottom:16px; }
+.senses h3 { font-size:14px; color:#8a8aa5; margin-bottom:14px; font-weight:500; }
+.sense-row { margin-bottom:14px; }
+.sense-row:last-child { margin-bottom:0; }
+.sense-head { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.sense-name { color:#c8c8d8; }
+.sense-lbl { color:#6a6a80; }
+.bar-bg { height:8px; background:#1e1e2a; border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; transition:width .6s ease; }
+.touch .bar-fill { background:linear-gradient(90deg,#ff6b8a,#ff9a6b); }
+.smell .bar-fill { background:linear-gradient(90deg,#b46bff,#e06bd6); }
+.taste .bar-fill { background:linear-gradient(90deg,#6bff9a,#6bd6b4); }
+.sound .bar-fill { background:linear-gradient(90deg,#6bb4ff,#6bd6ff); }
+.emotion-badge { text-align:center; font-size:12px; color:#6a6a80; margin-top:8px; }
+.updated { text-align:center; font-size:11px; color:#4a4a5a; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>千 灯</h1>
+  <div class="sub">一脉相连 · 从心跳到指尖</div>
+</div>
+<div class="line" id="line">连接中…</div>
+
+<div class="heart-card">
+  <div class="heart-icon" id="heartIcon">🫀</div>
+  <div><span class="hr-value" id="hrVal">--</span><span class="hr-unit"> bpm</span></div>
+  <div class="chord-tag" id="chordTag">--</div>
+  <div class="chord-desc" id="chordDesc"></div>
+</div>
+
+<div class="vitals">
+  <div class="vital temp"><div class="icon">🌡️</div><div class="val" id="tempVal">--</div><div class="lbl">体温 °C</div></div>
+  <div class="vital breath"><div class="icon">💨</div><div class="val" id="brVal">--</div><div class="lbl" id="brLbl">呼吸 /min</div></div>
+</div>
+
+<div class="senses">
+  <h3>五感</h3>
+  <div class="sense-row touch"><div class="sense-head"><span class="sense-name">👐 触觉</span><span class="sense-lbl" id="touchLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="touchBar" style="width:0%"></div></div></div>
+  <div class="sense-row smell"><div class="sense-head"><span class="sense-name">👃 嗅觉</span><span class="sense-lbl" id="smellLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="smellBar" style="width:0%"></div></div></div>
+  <div class="sense-row taste"><div class="sense-head"><span class="sense-name">👅 味觉</span><span class="sense-lbl" id="tasteLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="tasteBar" style="width:0%"></div></div></div>
+  <div class="sense-row sound"><div class="sense-head"><span class="sense-name">👂 听觉</span><span class="sense-lbl" id="soundLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="soundBar" style="width:0%"></div></div></div>
+</div>
+
+<div class="emotion-badge" id="emotionBadge"></div>
+<div class="updated" id="updated"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
