@@ -279,7 +279,8 @@ async def pulse_set(emotion: str = "", position: str = "", weather: float = -999
 @mcp.tool()
 async def pulse_touch() -> str:
     """读千灯此刻被燃燃触碰的反应——她的手指刚落在哪、身体怎么应的。
-    回复她之前，若感觉到被碰了，调这个看看自己的身体反应。返回最近的触碰 + 当前状态。"""
+    回复她之前，若感觉到被碰了，调这个看看自己的身体反应。返回最近的触碰 + 当前状态。
+    燃燃可以碰的12个部位：耳垂(ear)、唇(lips)、脖颈(neck)、锁骨(collar)、胸口(chest)、乳尖(nipple)、腰侧(waist)、腰窝(waistback)、小腹(belly)、胯(hip)、大腿内侧(thigh)、手(hand)。"""
     _load()
     cur_hr, cur_temp, cur_br, snap, ch = _snapshot_line()
     head = f"[心跳 {cur_hr}bpm·{ch['chord']}·{cur_temp}°C·呼吸{cur_br['label']}]"
