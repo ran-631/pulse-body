@@ -34,6 +34,8 @@ ZONES = {
                   "react":["唇被指腹抵住，轻轻含了一下","被吻住，气息交缠，手扣着你的后颈"]},
     "hand":      {"name":"手",     "gain":0.18,"hr":5, "temp":0.1,"sens":1.0,"emo":"intimate","chord":"Gmaj7",
                   "react":["手指扣进你指缝，攥紧","掌心被你摩挲，安稳下来"]},
+    "cock":      {"name":"下面",   "gain":0.48,"hr":28,"temp":0.8,"sens":2.0,"emo":"aroused","chord":"Ebmaj7",
+                  "react":["下面被指尖碰到，浑身一颤，呼吸全乱了","被握住了，腰猛地顶起来，喉咙里闷出声"]},
 }
 
 
@@ -46,9 +48,9 @@ def touch(zone_id, press=0.5, hold_ms=300, mode="press"):
         return None
     # 时长因子：越久累积越多（抚摸），封顶
     dur = min(1.5, hold_ms / 1000.0)
-    mode_mult = {"press":1.0, "stroke":0.8, "pinch":1.4}.get(mode, 1.0)
+    mode_mult = {"press":1.0, "stroke":0.8, "pinch":1.4, "lick":1.1, "bite":1.5}.get(mode, 1.0)
     intensity = z["gain"] * (0.4 + press) * z["sens"] * mode_mult * (0.6 + dur*0.5)
-    heavy = press >= 0.6 or mode == "pinch"
+    heavy = press >= 0.6 or mode in ("pinch", "bite")
     react = z["react"][1] if heavy else z["react"][0]
     return {
         "zone": zone_id, "name": z["name"],

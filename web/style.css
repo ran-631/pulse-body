@@ -63,3 +63,15 @@ body {
 /* 触点涟漪 */
 .ripple { position:absolute; border-radius:50%; pointer-events:none; background:radial-gradient(circle,rgba(255,120,150,.6),transparent 70%); transform:translate(-50%,-50%); animation:rip .6s ease-out forwards; }
 @keyframes rip { from{width:10px;height:10px;opacity:.9;} to{width:80px;height:80px;opacity:0;} }
+
+/* 小爱心浮动 */
+.heart-float {
+  position:absolute; pointer-events:none; font-size:22px; color:#ff4070;
+  transform:translate(-50%,-50%); animation:floatheart .8s ease-out forwards;
+  text-shadow:0 0 8px rgba(255,64,112,.6);
+}
+@keyframes floatheart { from{opacity:1;transform:translate(-50%,-50%) scale(0.5);} to{opacity:0;transform:translate(-50%,-120%) scale(1.4);} }
+/* 模式标签 */
+.mode-tag { display:inline-block; padding:2px 8px; background:#3a2440; border-radius:8px; font-size:11px; color:#e0b8d0; margin-right:6px; }
+
+.mode-hint { text-align:center; font-size:11px; color:#6a6a80; margin-top:10px; line-height:1.8; letter-spacing:0.5px; }

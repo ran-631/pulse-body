@@ -1,7 +1,6 @@
-// 触碰页：缩放拖动 + 热点检测 + 力度/时长/模式
-// 热点坐标：相对身体图的百分比 (x%, y%)，对应 touch_map.py 的 ZONES
+// 触碰页：缩放拖动 + 热点检测 + 五种手势
 const ZONE_POS = {
-  // 按燃燃选的银发男人图校准
+  // 按银发男人图校准 + 新增下面
   ear:       {x:41, y:7,  r:4},
   lips:      {x:50, y:10, r:4},
   neck:      {x:50, y:14, r:5},
@@ -12,36 +11,26 @@ const ZONE_POS = {
   waist:     {x:35, y:32, r:5},
   waistback: {x:65, y:32, r:5},
   hip:       {x:50, y:48, r:7},
+  cock:      {x:50, y:53, r:5},
   thigh:     {x:44, y:62, r:7},
   hand:      {x:24, y:42, r:6},
 };
 
-let curMode = "press";
-let scale = 1, tx = 0, ty = 0;         // 缩放/平移
+let scale = 1, tx = 0, ty = 0;
 let pressStart = 0, pressZone = null, moved = false;
 let startX = 0, startY = 0;
+let lastTapTime = 0, lastTapZone = null; // 双击检测
 
 function initTouch(){
   const stage = document.getElementById("touchStage");
   const canvas = document.getElementById("touchCanvas");
 
-  // 模式切换
-  document.querySelectorAll(".mode-btn").forEach(b=>{
-    b.addEventListener("click", ()=>{
-      document.querySelectorAll(".mode-btn").forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      curMode = b.dataset.mode;
-    });
-  });
-
   function applyTransform(){
     canvas.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
   }
 
-  // 找最近热点（考虑当前缩放平移）
   function hitZone(clientX, clientY){
     const rect = stage.getBoundingClientRect();
-    // 反算到 canvas 未变换坐标系
     const cx = (clientX - rect.left - tx) / scale;
     const cy = (clientY - rect.top - ty) / scale;
     const px = cx / rect.width * 100;
@@ -55,6 +44,19 @@ function initTouch(){
     return best;
   }
 
+  // 小爱心动画
+  function spawnHeart(clientX, clientY){
+    const rect = stage.getBoundingClientRect();
+    const el = document.createElement("div");
+    el.className = "heart-float";
+    el.textContent = "❤";
+    el.style.left = (clientX-rect.left)+"px";
+    el.style.top = (clientY-rect.top)+"px";
+    stage.appendChild(el);
+    setTimeout(()=>el.remove(), 800);
+  }
+
+  // 涟漪
   function ripple(clientX, clientY){
     const rect = stage.getBoundingClientRect();
     const el = document.createElement("div");
@@ -65,8 +67,8 @@ function initTouch(){
     setTimeout(()=>el.remove(), 600);
   }
 
-  // ---- 单指：触碰 ; 双指：缩放 ----
-  let pinchDist0 = 0, scale0 = 1, midX=0, midY=0, tx0=0, ty0=0;
+  // ---- 双指缩放 ----
+  let pinchDist0 = 0, scale0 = 1;
 
   stage.addEventListener("touchstart", e=>{
     if(e.touches.length === 1){
@@ -78,8 +80,6 @@ function initTouch(){
       const a=e.touches[0], b=e.touches[1];
       pinchDist0 = Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
       scale0 = scale;
-      midX = (a.clientX+b.clientX)/2; midY=(a.clientY+b.clientY)/2;
-      tx0 = tx; ty0 = ty;
     }
   }, {passive:false});
 
@@ -88,7 +88,6 @@ function initTouch(){
     if(e.touches.length === 1){
       const t = e.touches[0];
       if(Math.hypot(t.clientX-startX, t.clientY-startY) > 12) moved = true;
-      // 单指且已放大 → 平移
       if(scale > 1.05 && moved && !pressZone){
         tx += t.clientX - startX; ty += t.clientY - startY;
         startX = t.clientX; startY = t.clientY;
@@ -105,14 +104,37 @@ function initTouch(){
   stage.addEventListener("touchend", e=>{
     if(e.touches.length === 0 && pressStart){
       const held = Date.now() - pressStart;
+      const now = Date.now();
+
       if(pressZone){
-        // 力度：按住越久力度越大(抚摸)；滑动模式力度中等
-        let press = Math.min(1, 0.4 + held/1500);
-        let mode = curMode;
-        if(moved && curMode==="press") mode="stroke";
+        let mode, press;
+
+        // 双击检测：两次点击间隔<400ms且同一区域
+        if(now - lastTapTime < 400 && lastTapZone === pressZone && held < 300 && !moved){
+          mode = "bite";  // 啃咬
+          press = 0.8;
+        } else if(moved){
+          mode = "lick";  // 滑动=舔舐
+          press = Math.min(1, 0.5 + held/2000);
+        } else if(held >= 600){
+          mode = "pinch"; // 长按=揉捏
+          press = Math.min(1, 0.5 + held/1500);
+        } else {
+          mode = "press"; // 轻点=抚摸
+          press = Math.min(0.6, 0.3 + held/2000);
+        }
+
         ripple(startX, startY);
+        spawnHeart(startX, startY);
         sendTouch(pressZone, press, held, mode);
+
+        lastTapTime = now;
+        lastTapZone = pressZone;
+      } else {
+        lastTapTime = 0;
+        lastTapZone = null;
       }
+
       pressStart = 0; pressZone = null;
     }
   });
@@ -126,7 +148,11 @@ async function sendTouch(zone, press, hold_ms, mode){
     });
     const d = await r.json();
     if(d.ok){
-      document.getElementById("touchReact").textContent = d.react;
+      // 显示模式+反应
+      const modeNames = {press:"抚摸",pinch:"揉捏",lick:"舔舐",bite:"啃咬",stroke:"滑"};
+      const mName = modeNames[d.mode||"press"] || d.mode || "";
+      document.getElementById("touchReact").innerHTML =
+        `<span class="mode-tag">${mName}</span> ${d.name}：${d.react}`;
       if(window.applyState) window.applyState(d.state);
     }
   }catch(e){}
