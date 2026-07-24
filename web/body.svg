@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 620" fill="none">
+<defs>
+  <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#3a3348"/>
+    <stop offset="1" stop-color="#2a2438"/>
+  </linearGradient>
+  <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#c9a5e0"/>
+    <stop offset="1" stop-color="#e0b8d0"/>
+  </linearGradient>
+</defs>
+<g stroke="url(#edge)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" fill="url(#skin)" opacity="0.96">
+  <!-- 头 -->
+  <ellipse cx="150" cy="58" rx="38" ry="44"/>
+  <!-- 脖子 -->
+  <path d="M132 96 L132 122 Q150 132 168 122 L168 96"/>
+  <!-- 肩+躯干 -->
+  <path d="M168 118 Q214 128 224 168 L214 260 Q208 320 198 360 L192 430 L108 430 L102 360 Q92 320 86 260 L76 168 Q86 128 132 118 Q150 128 168 118 Z"/>
+  <!-- 左臂 -->
+  <path d="M80 172 Q54 210 50 270 Q48 320 58 360 L74 356 Q68 314 70 272 Q74 216 92 186"/>
+  <!-- 右臂 -->
+  <path d="M220 172 Q246 210 250 270 Q252 320 242 360 L226 356 Q232 314 230 272 Q226 216 208 186"/>
+  <!-- 左腿 -->
+  <path d="M108 430 L104 520 Q102 570 112 606 L134 606 Q140 566 142 520 L148 432"/>
+  <!-- 右腿 -->
+  <path d="M192 430 L196 520 Q198 570 188 606 L166 606 Q160 566 158 520 L152 432"/>
+</g>
+<!-- 分区描线（暗示肌肉线条，非交互） -->
+<g stroke="url(#edge)" stroke-width="0.8" opacity="0.4" fill="none" stroke-linecap="round">
+  <path d="M120 150 Q150 158 180 150"/>  <!-- 锁骨 -->
+  <path d="M150 160 L150 260"/>          <!-- 胸骨中线 -->
+  <path d="M125 200 Q150 214 175 200"/>  <!-- 胸下 -->
+  <path d="M128 300 Q150 308 172 300"/>  <!-- 腹肌1 -->
+  <path d="M130 340 Q150 346 170 340"/>  <!-- 腹肌2 -->
+</g>
+</svg>

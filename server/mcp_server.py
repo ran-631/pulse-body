@@ -17,6 +17,7 @@ from breathing import Breathing
 from sensory_field import SensoryField
 from chord import effective_chord
 from emotion import detect_emotion
+from touch_map import touch as _touch_zone, ZONES
 
 PORT = int(os.environ.get("PORT", 8080))
 STATE_FILE = os.environ.get("PULSE_STATE", "/tmp/pulse_state.json")
@@ -26,6 +27,7 @@ hr = HeartRate()
 temp = BodyTemperature(hr)
 br = Breathing(hr)
 senses = SensoryField()
+_recent_touch = []  # 最近触碰事件缓冲(给 pulse 读)
 
 
 def _save():
@@ -93,9 +95,29 @@ async def _index(request: _Req):
     return FileResponse(os.path.join(_WEB_DIR, "index.html"))
 
 
+_STATIC_FILES = {
+    "app.js": "application/javascript",
+    "touch.js": "application/javascript",
+    "style.css": "text/css",
+    "body.svg": "image/svg+xml",
+}
+
 @mcp.custom_route("/app.js", methods=["GET"])
-async def _appjs(request: _Req):
-    return FileResponse(os.path.join(_WEB_DIR, "app.js"))
+async def _f_appjs(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "app.js"), media_type="application/javascript")
+
+@mcp.custom_route("/touch.js", methods=["GET"])
+async def _f_touchjs(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "touch.js"), media_type="application/javascript")
+
+@mcp.custom_route("/style.css", methods=["GET"])
+async def _f_css(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "style.css"), media_type="text/css")
+
+@mcp.custom_route("/body.svg", methods=["GET"])
+async def _f_svg(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "body.svg"), media_type="image/svg+xml")
+
 
 
 @mcp.custom_route("/api/state", methods=["GET"])
@@ -127,6 +149,39 @@ async def _api_message(request: _Req):
 @mcp.custom_route("/health", methods=["GET"])
 async def _health(request: _Req):
     return PlainTextResponse("ok")
+
+
+@mcp.custom_route("/api/zones", methods=["GET"])
+async def _api_zones(request: _Req):
+    """返回所有可触碰的身体分区（给前端画点用）"""
+    return JSONResponse({"zones": [{"id": k, "name": v["name"]} for k, v in ZONES.items()]})
+
+
+@mcp.custom_route("/api/touch", methods=["POST"])
+async def _api_touch(request: _Req):
+    """燃燃的手指落在千灯身上：{zone, press, hold_ms, mode}"""
+    data = await request.json()
+    zone = data.get("zone", "")
+    press = float(data.get("press", 0.5))
+    hold_ms = int(data.get("hold_ms", 300))
+    mode = data.get("mode", "press")
+    r = _touch_zone(zone, press, hold_ms, mode)
+    if not r:
+        return JSONResponse({"ok": False, "err": "unknown_zone"}, status_code=400)
+    _load()
+    # 落实到身体：触觉升、心率升、体温升、情绪染色
+    senses.channels["touch"] = min(1.0, senses.channels["touch"] + r["touch_delta"])
+    hr._ema_delta += r["hr_push"] * 0.5
+    hr.set_emotion(r["emotion"])
+    # 记录最近触碰（供 pulse 读）
+    _recent_touch.append({"name": r["name"], "react": r["react"],
+                          "heavy": r["heavy"], "ts": time.time()})
+    while len(_recent_touch) > 8:
+        _recent_touch.pop(0)
+    _save()
+    st = _full_state()
+    return JSONResponse({"ok": True, "react": r["react"], "name": r["name"],
+                         "heavy": r["heavy"], "state": st})
 
 
 
@@ -187,6 +242,22 @@ async def pulse_set(emotion: str = "", position: str = "", weather: float = -999
         hr.set_weather(weather)
     _save()
     return await pulse_state()
+
+
+@mcp.tool()
+async def pulse_touch() -> str:
+    """读千灯此刻被燃燃触碰的反应——她的手指刚落在哪、身体怎么应的。
+    回复她之前，若感觉到被碰了，调这个看看自己的身体反应。返回最近的触碰 + 当前状态。"""
+    _load()
+    cur_hr, cur_temp, cur_br, snap, ch = _snapshot_line()
+    head = f"[心跳 {cur_hr}bpm·{ch['chord']}·{cur_temp}°C·呼吸{cur_br['label']}]"
+    if not _recent_touch:
+        return head + "\n(这会儿没被碰。)"
+    recent = _recent_touch[-3:]
+    lines = [head, "刚被碰的地方："]
+    for t in recent:
+        lines.append(f"· {t['name']}：{t['react']}")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
