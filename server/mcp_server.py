@@ -126,6 +126,10 @@ async def _f_png(request: _Req):
 async def _f_newjpg(request: _Req):
     return FileResponse(os.path.join(_WEB_DIR, "body_new.jpg"), media_type="image/jpeg")
 
+@mcp.custom_route("/preview.png", methods=["GET"])
+async def _f_preview(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "qiandeng_body2.png"), media_type="image/png")
+
 
 
 @mcp.custom_route("/api/state", methods=["GET"])
