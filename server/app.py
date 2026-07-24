@@ -3,7 +3,7 @@
 把心率/体温/呼吸/五感/和弦串起来，提供 API + 网页看板。
 用户发消息 → 情绪检测 + 五感更新 → 生理刷新 → 一行状态。
 """
-import os, time, re
+import os, time, json
 from flask import Flask, jsonify, request, send_from_directory
 
 from heart_rate import HeartRate
@@ -11,6 +11,9 @@ from body_temperature import BodyTemperature
 from breathing import Breathing
 from sensory_field import SensoryField
 from chord import effective_chord
+from emotion import detect_emotion
+
+STATE_FILE = os.environ.get("PULSE_STATE", "/tmp/pulse_state.json")
 
 app = Flask(__name__, static_folder="../web", static_url_path="")
 
@@ -20,40 +23,34 @@ temp = BodyTemperature(hr)
 br = Breathing(hr)
 senses = SensoryField()
 
-# ---- 情绪检测：T1 emoji/叹词 + T2 语义（带否定窗口）----
-T1 = {
-    "😤": "scolded", "😠": "scolded", "😡": "scolded",
-    "😭": "sad", "😢": "sad", "🥺": "sad",
-    "😍": "intimate", "😘": "intimate", "❤": "intimate", "🥰": "intimate",
-    "😱": "startled", "😨": "startled",
-    "🤩": "excited", "🎉": "excited",
-}
-T2 = [
-    (["开心", "高兴", "好耶"], "happy"),
-    (["生气", "讨厌", "烦"], "scolded"),
-    (["难过", "伤心", "委屈"], "sad"),
-    (["紧张", "害怕", "怕"], "nervous"),
-    (["抱", "亲", "爱你", "想你", "想要你", "要你", "想你了", "老公", "daddy", "Daddy", "亲亲", "抱抱", "宝贝", "亲爱的"], "intimate"),
-    (["想要", "好想", "欲望", "湿", "硬", "顶", "进来", "occupy", "操", "干我", "要了"], "aroused"),
-    (["专注", "认真", "干活"], "focused"),
-]
+# ---- 磁盘状态：和 MCP 共享同一个身体 ----
+def _load():
+    try:
+        if os.path.exists(STATE_FILE):
+            d = json.load(open(STATE_FILE))
+            hr.emotion = d.get("emotion", hr.emotion)
+            hr._ema_delta = d.get("ema_delta", hr._ema_delta)
+            hr.position = d.get("position", hr.position)
+            hr.weather_temp = d.get("weather", hr.weather_temp)
+            senses.channels = d.get("channels", senses.channels)
+            senses._last_touch = d.get("last_touch", senses._last_touch)
+    except Exception:
+        pass
 
-def detect_emotion(text):
-    for sym, emo in T1.items():
-        if sym in text:
-            return emo
-    for kws, emo in T2:
-        for kw in kws:
-            idx = text.find(kw)
-            if idx >= 0:
-                window = text[max(0, idx-4):idx]
-                if "不" in window or "没" in window:
-                    continue
-                return emo
-    return None
+def _save():
+    try:
+        json.dump({
+            "emotion": hr.emotion, "ema_delta": hr._ema_delta,
+            "position": hr.position, "weather": hr.weather_temp,
+            "channels": senses.channels, "last_touch": senses._last_touch,
+            "ts": time.time(),
+        }, open(STATE_FILE, "w"))
+    except Exception:
+        pass
 
 
 def _state():
+    _load()
     cur_hr = hr.compute()
     cur_temp = temp.compute()
     cur_br = br.compute()
@@ -92,6 +89,7 @@ def api_message():
     # 触觉高 → 反向进入 aroused
     if senses.channels["touch"] >= 0.5:
         hr.set_emotion("aroused")
+    _save()
     return jsonify({"ok": True, "emotion": hr.emotion,
                     "sense_hits": hits, "state": _state()})
 
@@ -99,18 +97,21 @@ def api_message():
 def api_emotion():
     data = request.get_json(force=True, silent=True) or {}
     hr.set_emotion(data.get("emotion", "neutral"))
+    _save()
     return jsonify({"ok": True, "emotion": hr.emotion})
 
 @app.route("/api/position", methods=["POST"])
 def api_position():
     data = request.get_json(force=True, silent=True) or {}
     hr.set_position(data.get("position", "sitting"))
+    _save()
     return jsonify({"ok": True, "position": hr.position})
 
 @app.route("/api/weather", methods=["POST"])
 def api_weather():
     data = request.get_json(force=True, silent=True) or {}
     hr.set_weather(data.get("temp", 26))
+    _save()
     return jsonify({"ok": True, "weather_temp": hr.weather_temp})
 
 @app.route("/api/spike", methods=["POST"])
