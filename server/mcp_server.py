@@ -118,6 +118,10 @@ async def _f_css(request: _Req):
 async def _f_svg(request: _Req):
     return FileResponse(os.path.join(_WEB_DIR, "body.svg"), media_type="image/svg+xml")
 
+@mcp.custom_route("/body.png", methods=["GET"])
+async def _f_png(request: _Req):
+    return FileResponse(os.path.join(_WEB_DIR, "body.png"), media_type="image/png")
+
 
 
 @mcp.custom_route("/api/state", methods=["GET"])

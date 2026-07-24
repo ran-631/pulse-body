@@ -54,7 +54,7 @@ body {
 .touch-hint { font-size:11px; color:#6a6a80; text-align:center; margin-bottom:10px; line-height:1.6; }
 .touch-stage { position:relative; width:100%; height:60vh; background:radial-gradient(ellipse at center,#16121f,#0c0c12); border-radius:20px; overflow:hidden; border:1px solid #241830; touch-action:none; }
 .touch-canvas { position:absolute; top:0; left:0; width:100%; height:100%; transform-origin:0 0; }
-.body-svg { width:100%; height:100%; pointer-events:none; }
+.body-svg { width:100%; height:100%; object-fit:contain; pointer-events:none; user-select:none; }
 .touch-react { text-align:center; font-size:14px; color:#e0b8d0; margin:14px 8px; min-height:40px; line-height:1.6; }
 .mode-row { display:flex; gap:8px; }
 .mode-btn { flex:1; padding:11px 0; border:1px solid #2a1a2f; background:#12121a; color:#8a8aa5; font-size:13px; border-radius:12px; font-family:inherit; }
