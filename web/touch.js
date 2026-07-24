@@ -1,18 +1,19 @@
 // 触碰页：缩放拖动 + 热点检测 + 力度/时长/模式
 // 热点坐标：相对身体图的百分比 (x%, y%)，对应 touch_map.py 的 ZONES
 const ZONE_POS = {
-  ear:       {x:39, y:9,  r:5},   // 耳垂(偏左耳)
-  lips:      {x:50, y:11, r:5},
-  neck:      {x:50, y:18, r:6},
-  collar:    {x:50, y:24, r:7},
-  chest:     {x:50, y:32, r:9},
-  nipple:    {x:42, y:31, r:5},
-  belly:     {x:50, y:50, r:8},
-  waist:     {x:33, y:46, r:6},
-  waistback: {x:66, y:46, r:6},
-  hip:       {x:50, y:62, r:9},
-  thigh:     {x:44, y:74, r:7},
-  hand:      {x:20, y:52, r:6},
+  // x,y 为相对身体图的百分比；viewBox 300x720
+  ear:       {x:41, y:12, r:4.5},  // 左耳垂
+  lips:      {x:50, y:13, r:4},
+  neck:      {x:50, y:17, r:5},
+  collar:    {x:50, y:22, r:6},
+  chest:     {x:44, y:27, r:6},    // 左胸
+  nipple:    {x:44, y:28, r:3.5},  // 左乳尖(细,需放大)
+  belly:     {x:50, y:41, r:7},    // 腹
+  waist:     {x:41, y:37, r:5},    // 左腰侧
+  waistback: {x:42, y:52, r:5},    // 人鱼线/腰窝
+  hip:       {x:50, y:58, r:7},    // 胯
+  thigh:     {x:46, y:67, r:6},    // 大腿内侧
+  hand:      {x:22, y:46, r:6},    // 左手
 };
 
 let curMode = "press";
