@@ -1,5 +1,10 @@
 const EMO_CN = {neutral:"平静", focused:"专注", happy:"开心", excited:"激动", nervous:"紧张", scolded:"闷着气", sad:"难过", startled:"受惊", intimate:"亲近", aroused:"燥热"};
 function $(id){return document.getElementById(id);}
+let localTouch = 0, localPain = 0, localSenseAt = 0;
+function localSenseValue(value, at, halfLife){
+  if(!value || !at) return 0;
+  return value * Math.pow(0.5, Math.max(0, Date.now()/1000 - at) / halfLife);
+}
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
@@ -10,7 +15,13 @@ window.applyState=function(s){
   $("brVal").textContent=s.breathing.rate; $("brLbl").textContent="呼吸 · "+s.breathing.label; $("chordTag").textContent=s.chord.chord; $("chordDesc").textContent=s.chord.desc;
   $("heartIcon").style.animationDuration=(60/s.heart_rate).toFixed(2)+"s";
   const map={touch:"touchBar",smell:"smellBar",taste:"tasteBar",sound:"soundBar",pain:"painBar"}, lbl={touch:"touchLbl",smell:"smellLbl",taste:"tasteLbl",sound:"soundLbl",pain:"painLbl"};
-  for(const k in map){const v=s.senses[k]; $(map[k]).style.width=(v.value*100)+"%"; $(lbl[k]).textContent=v.value.toFixed(2);}
+  for(const k in map){
+    const v=s.senses[k] || {value:0};
+    let value=v.value;
+    if(k === "touch") value=Math.max(value, localSenseValue(localTouch, localSenseAt, 40));
+    if(k === "pain") value=Math.max(value, localSenseValue(localPain, localSenseAt, 45));
+    $(map[k]).style.width=(value*100)+"%"; $(lbl[k]).textContent=value.toFixed(2);
+  }
   $("emotionBadge").textContent="当前情绪 · "+(EMO_CN[s.emotion]||s.emotion); $("updated").textContent="更新于 "+new Date(s.ts*1000).toLocaleTimeString("zh-CN");
 };
 async function refresh(){try{const r=await fetch("/api/state",{cache:"no-store"});window.applyState(await r.json());}catch(e){$("line").textContent="连接断开，重试中…";}}
@@ -35,6 +46,14 @@ function renderMenu(groups){
 async function loadMenu(){try{const r=await fetch("/api/touch-menu",{cache:"no-store"});const d=await r.json();renderMenu(d.groups||[]);}catch(e){$("touchMenu").innerHTML="<div class=\"menu-loading\">菜单暂时无法加载</div>";}}
 async function sendAction(zone,action,button){
   button.classList.add("pressed"); setTimeout(()=>button.classList.remove("pressed"),180);
-  try{const r=await fetch("/api/touch-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({zone,action})});const d=await r.json();if(d.ok&&window.applyState)window.applyState(d.state);}catch(e){}
+  try{const r=await fetch("/api/touch-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({zone,action})});const d=await r.json();
+    if(d.ok){
+      if(d.touch_event){
+        localTouch=Math.max(localTouch,d.touch_event.value||0);
+        localPain=Math.max(localPain,d.touch_event.pain||0);
+        localSenseAt=d.touch_event.ts||Date.now()/1000;
+      }
+      if(window.applyState)window.applyState(d.state);
+    }}catch(e){}
 }
 refresh(); setInterval(refresh,3000); loadMenu();

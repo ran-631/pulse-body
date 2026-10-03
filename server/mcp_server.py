@@ -195,9 +195,18 @@ async def _api_touch_action(request: _Req):
     _recent_touch.append({"name": zone, "action": action, "ts": time.time()})
     while len(_recent_touch) > 8:
         _recent_touch.pop(0)
+    # 在重新读取共享状态前保留本次动作的即时结果，避免多进程/刷新把它覆盖回旧值。
+    event_touch = round(senses.channels.get("touch", 0.0), 3)
+    event_pain = round(senses.channels.get("pain", 0.0), 3)
+    event_ts = time.time()
     _save()
+    event_state = _full_state()
+    # 响应中的状态以本次动作结果为准；避免并发读取旧快照时把即时反馈冲掉。
+    event_state["senses"]["touch"] = {"value": round(event_touch, 2), "label": "强烈" if event_touch >= .7 else "明显" if event_touch >= .4 else "轻微" if event_touch >= .15 else "几乎无"}
+    event_state["senses"]["pain"] = {"value": round(event_pain, 2), "label": "强烈" if event_pain >= .7 else "明显" if event_pain >= .4 else "轻微" if event_pain >= .15 else "几乎无"}
     return JSONResponse({"ok": True, "zone": zone, "action": action,
-                         "state": _full_state()})
+                         "touch_event": {"value": event_touch, "pain": event_pain, "ts": event_ts},
+                         "state": event_state})
 
 
 # 兼容旧客户端：旧图片接口保留，但不再被新页面使用。
