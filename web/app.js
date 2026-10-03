@@ -9,7 +9,7 @@ window.applyState=function(s){
   if(!s)return; $("line").textContent=s.line; $("hrVal").textContent=s.heart_rate; $("tempVal").textContent=s.temperature;
   $("brVal").textContent=s.breathing.rate; $("brLbl").textContent="呼吸 · "+s.breathing.label; $("chordTag").textContent=s.chord.chord; $("chordDesc").textContent=s.chord.desc;
   $("heartIcon").style.animationDuration=(60/s.heart_rate).toFixed(2)+"s";
-  const map={touch:"touchBar",smell:"smellBar",taste:"tasteBar",sound:"soundBar"}, lbl={touch:"touchLbl",smell:"smellLbl",taste:"tasteLbl",sound:"soundLbl"};
+  const map={touch:"touchBar",smell:"smellBar",taste:"tasteBar",sound:"soundBar",pain:"painBar"}, lbl={touch:"touchLbl",smell:"smellLbl",taste:"tasteLbl",sound:"soundLbl",pain:"painLbl"};
   for(const k in map){const v=s.senses[k]; $(map[k]).style.width=(v.value*100)+"%"; $(lbl[k]).textContent=v.value.toFixed(2);}
   $("emotionBadge").textContent="当前情绪 · "+(EMO_CN[s.emotion]||s.emotion); $("updated").textContent="更新于 "+new Date(s.ts*1000).toLocaleTimeString("zh-CN");
 };

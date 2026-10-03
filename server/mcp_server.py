@@ -183,6 +183,12 @@ async def _api_touch_action(request: _Req):
     current = senses.channels.get("touch", 0.0)
     state_factor = 0.85 + current * 0.30
     senses.channels["touch"] = min(1.0, current + r["touch"] * state_factor)
+    pain_actions = {"脑瓜崩儿": .16, "拧耳朵": .18, "轻捏": .08, "轻拧": .10,
+                    "轻掐": .10, "掐住": .14, "按住": .06, "按压": .06,
+                    "轻压": .05, "抓挠": .08, "抓紧": .08, "耳光": .28,
+                    "拍打": .18, "啃咬": .06, "轻咬": .03}
+    if action in pain_actions:
+        senses.channels["pain"] = min(1.0, senses.channels.get("pain", 0.0) + pain_actions[action] * state_factor)
     hr._ema_delta += r["touch"] * 7.0 * state_factor
     hr.set_emotion(r["emotion"])
     # 后台只保留最近动作供 MCP 读取；页面不展示动作历史或固定反馈。

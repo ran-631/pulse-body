@@ -4,34 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>千灯 · 脉</title>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <div class="header"><h1>千 灯</h1><div class="sub">一脉相连 · 从心跳到指尖</div></div>
 <div class="line" id="line">连接中…</div>
 <div class="tabs">
-  <button class="tab active" data-tab="heart">心跳</button>
-  <button class="tab" data-tab="senses">五感</button>
+  <button class="tab active" data-tab="body">身体</button>
   <button class="tab" data-tab="touch">触碰</button>
 </div>
-<section class="page active" id="page-heart">
+<section class="page active" id="page-body">
   <div class="heart-card"><div class="heart-icon" id="heartIcon">🫀</div><div><span class="hr-value" id="hrVal">--</span><span class="hr-unit"> bpm</span></div><div class="chord-tag" id="chordTag">--</div><div class="chord-desc" id="chordDesc"></div></div>
   <div class="vitals"><div class="vital temp"><div class="icon">🌡️</div><div class="val" id="tempVal">--</div><div class="lbl">体温 °C</div></div><div class="vital breath"><div class="icon">💨</div><div class="val" id="brVal">--</div><div class="lbl" id="brLbl">呼吸 /min</div></div></div>
   <div class="emotion-badge" id="emotionBadge"></div>
-</section>
-<section class="page" id="page-senses">
   <div class="senses">
     <div class="sense-row touch"><div class="sense-head"><span class="sense-name">👐 触觉</span><span class="sense-lbl" id="touchLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="touchBar"></div></div></div>
     <div class="sense-row smell"><div class="sense-head"><span class="sense-name">👃 嗅觉</span><span class="sense-lbl" id="smellLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="smellBar"></div></div></div>
     <div class="sense-row taste"><div class="sense-head"><span class="sense-name">👅 味觉</span><span class="sense-lbl" id="tasteLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="tasteBar"></div></div></div>
     <div class="sense-row sound"><div class="sense-head"><span class="sense-name">👂 听觉</span><span class="sense-lbl" id="soundLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="soundBar"></div></div></div>
+    <div class="sense-row pain"><div class="sense-head"><span class="sense-name">🌡️ 痛觉</span><span class="sense-lbl" id="painLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="painBar"></div></div></div>
   </div>
 </section>
+
 <section class="page" id="page-touch">
   <div class="touch-intro">从头到脚，选择你想给我的触碰。</div>
   <div id="touchMenu" class="touch-menu"><div class="menu-loading">菜单加载中…</div></div>
 </section>
 <div class="updated" id="updated"></div>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

@@ -25,6 +25,9 @@ KEYWORDS = {
         "唱": 0.30, "听": 0.25, "音乐": 0.28, "说话": 0.20,
         "笑": 0.25, "叫": 0.30, "喘": 0.35, "哼": 0.24,
     },
+    "pain": {
+        "痛": 0.35, "疼": 0.35, "刺痛": 0.45, "酸痛": 0.30,
+    },
 }
 
 TOUCH_LABELS = [(0.7, "强烈"), (0.4, "明显"), (0.15, "轻微"), (0.0, "几乎无")]
@@ -42,7 +45,7 @@ class SensoryField:
         self.channels = {k: 0.0 for k in KEYWORDS}
         self._last_touch = {k: time.time() for k in KEYWORDS}
         # 衰减半衰期（秒）
-        self._halflife = {"touch": 40, "smell": 60, "taste": 90, "sound": 30}
+        self._halflife = {"touch": 40, "smell": 60, "taste": 90, "sound": 30, "pain": 45}
 
     def _decay(self, ch):
         now = time.time()
