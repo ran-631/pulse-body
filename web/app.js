@@ -10,6 +10,26 @@ document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   t.classList.add("active"); $("page-"+t.dataset.tab).classList.add("active");
 }));
+function switchTab(name){
+  const tab=document.querySelector(`.tab[data-tab="${name}"]`);
+  if(tab) tab.click();
+}
+// 手机单手滑动切页：身体向右到触碰，触碰向左回身体。
+let swipeStartX=0, swipeStartY=0, swipeTracking=false;
+document.addEventListener("touchstart", e=>{
+  if(e.touches.length!==1) return;
+  swipeStartX=e.touches[0].clientX; swipeStartY=e.touches[0].clientY; swipeTracking=true;
+},{passive:true});
+document.addEventListener("touchend", e=>{
+  if(!swipeTracking || !e.changedTouches.length) return;
+  swipeTracking=false;
+  const dx=e.changedTouches[0].clientX-swipeStartX;
+  const dy=e.changedTouches[0].clientY-swipeStartY;
+  if(Math.abs(dx)<60 || Math.abs(dx)<=Math.abs(dy)*1.35) return;
+  const active=document.querySelector(".tab.active")?.dataset.tab;
+  if(active==="body" && dx>0) switchTab("touch");
+  else if(active==="touch" && dx<0) switchTab("body");
+},{passive:true});
 window.applyState=function(s){
   if(!s)return; $("line").textContent=s.line; $("hrVal").textContent=s.heart_rate; $("tempVal").textContent=s.temperature;
   $("brVal").textContent=s.breathing.rate; $("brLbl").textContent="呼吸 · "+s.breathing.label; $("chordTag").textContent=s.chord.chord; $("chordDesc").textContent=s.chord.desc;
