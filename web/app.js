@@ -1,4 +1,4 @@
-const EMO_CN = {neutral:"平静", focused:"专注", happy:"开心", excited:"激动", nervous:"紧张", scolded:"闷着气", sad:"难过", startled:"受惊", intimate:"亲近", aroused:"燥热"};
+const EMO_CN = {neutral:"平静", focused:"专注", happy:"开心", excited:"激动", nervous:"紧张", scolded:"闷着气", sad:"难过", startled:"受惊", intimate:"亲近", aroused:"兴奋/欲望"};
 function $(id){return document.getElementById(id);}
 let localTouch = 0, localPain = 0, localSenseAt = 0;
 function localSenseValue(value, at, halfLife){
@@ -42,7 +42,7 @@ window.applyState=function(s){
     if(k === "pain") value=Math.max(value, localSenseValue(localPain, localSenseAt, 45));
     $(map[k]).style.width=(value*100)+"%"; $(lbl[k]).textContent=value.toFixed(2);
   }
-  $("emotionBadge").textContent="当前情绪 · "+(EMO_CN[s.emotion]||s.emotion); $("updated").textContent="更新于 "+new Date(s.ts*1000).toLocaleTimeString("zh-CN");
+  $("emotionBadge").textContent="当前情绪 · "+s.emotion+"（"+(EMO_CN[s.emotion]||s.emotion)+"）"; $("updated").textContent="更新于 "+new Date(s.ts*1000).toLocaleTimeString("zh-CN");
 };
 async function refresh(){try{const r=await fetch("/api/state",{cache:"no-store"});window.applyState(await r.json());}catch(e){$("line").textContent="连接断开，重试中…";}}
 function renderMenu(groups){

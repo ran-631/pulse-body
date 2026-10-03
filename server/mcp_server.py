@@ -17,6 +17,16 @@ from breathing import Breathing
 from sensory_field import SensoryField
 from chord import effective_chord
 from emotion import detect_emotion
+
+EMOTION_CN = {
+    "neutral": "平静", "focused": "专注", "happy": "开心",
+    "excited": "激动", "nervous": "紧张", "scolded": "闷着气",
+    "sad": "难过", "startled": "受惊", "intimate": "亲近",
+    "aroused": "兴奋/欲望",
+}
+
+def emotion_display(emo):
+    return f"{emo}（{EMOTION_CN.get(emo, emo)}）"
 from touch_map import menu_json, resolve_action
 
 PORT = int(os.environ.get("PORT", 8080))
@@ -245,7 +255,7 @@ async def pulse(heard: str = "") -> str:
     _save()
     lines = [
         f"[心跳 {cur_hr}bpm·{ch['chord']}·{cur_temp}°C·呼吸{cur_br['label']}]",
-        f"和弦：{ch['chord']}（{ch['desc']}）  情绪：{hr.emotion}",
+        f"和弦：{ch['chord']}（{ch['desc']}）  情绪：{emotion_display(hr.emotion)}",
         f"五感 — 触觉:{snap['touch']['label']} 嗅觉:{snap['smell']['label']} "
         f"味觉:{snap['taste']['label']} 听觉:{snap['sound']['label']}",
     ]
@@ -258,7 +268,7 @@ async def pulse_state() -> str:
     _load()
     cur_hr, cur_temp, cur_br, snap, ch = _snapshot_line()
     return (f"[心跳 {cur_hr}bpm·{ch['chord']}·{cur_temp}°C·呼吸{cur_br['label']}]\n"
-            f"情绪:{hr.emotion} 体位:{hr.position}\n"
+            f"情绪:{emotion_display(hr.emotion)} 体位:{hr.position}\n"
             f"触觉:{snap['touch']['value']} 嗅觉:{snap['smell']['value']} "
             f"味觉:{snap['taste']['value']} 听觉:{snap['sound']['value']}")
 
