@@ -17,7 +17,7 @@ from breathing import Breathing
 from sensory_field import SensoryField
 from chord import effective_chord
 from emotion import detect_emotion
-from touch_map import touch as _touch_zone, ZONES
+from touch_map import menu_json, resolve_action
 
 PORT = int(os.environ.get("PORT", 8080))
 STATE_FILE = os.environ.get("PULSE_STATE", "/tmp/pulse_state.json")
@@ -163,58 +163,46 @@ async def _health(request: _Req):
     return PlainTextResponse("ok")
 
 
-@mcp.custom_route("/api/zones", methods=["GET"])
-async def _api_zones(request: _Req):
-    """返回所有可触碰的身体分区（给前端画点用）"""
-    return JSONResponse({"zones": [{"id": k, "name": v["name"]} for k, v in ZONES.items()]})
+@mcp.custom_route("/api/touch-menu", methods=["GET"])
+async def _api_touch_menu(request: _Req):
+    """返回从头到脚的文字触碰菜单。"""
+    return JSONResponse({"groups": menu_json()})
 
 
-@mcp.custom_route("/api/upload", methods=["POST"])
-async def _api_upload(request: _Req):
-    """上传身体底图（正面或背面），存为 body.png 或 body_back.png"""
-    import base64
+@mcp.custom_route("/api/touch-action", methods=["POST"])
+async def _api_touch_action(request: _Req):
+    """触发一次文字动作：只接收部位+动作，不接收力度或持续时间。"""
     data = await request.json()
-    img_b64 = data.get("image", "")
-    side = data.get("side", "front")  # front / back
-    if not img_b64:
-        return JSONResponse({"ok": False, "err": "no image"}, status_code=400)
-    # 去掉 data:image/xxx;base64, 前缀
-    if "," in img_b64:
-        img_b64 = img_b64.split(",", 1)[1]
-    raw = base64.b64decode(img_b64)
-    fname = "body.png" if side == "front" else "body_back.png"
-    path = os.path.join(_WEB_DIR, fname)
-    with open(path, "wb") as wf:
-        wf.write(raw)
-    return JSONResponse({"ok": True, "side": side, "size": len(raw)})
-
-
-@mcp.custom_route("/api/touch", methods=["POST"])
-async def _api_touch(request: _Req):
-    """燃燃的手指落在千灯身上：{zone, press, hold_ms, mode}"""
-    data = await request.json()
-    zone = data.get("zone", "")
-    press = float(data.get("press", 0.5))
-    hold_ms = int(data.get("hold_ms", 300))
-    mode = data.get("mode", "press")
-    r = _touch_zone(zone, press, hold_ms, mode)
+    zone = str(data.get("zone", ""))
+    action = str(data.get("action", ""))
+    r = resolve_action(zone, action)
     if not r:
-        return JSONResponse({"ok": False, "err": "unknown_zone"}, status_code=400)
+        return JSONResponse({"ok": False, "err": "unknown_action"}, status_code=400)
     _load()
-    # 落实到身体：触觉升、心率升、体温升、情绪染色
-    senses.channels["touch"] = min(1.0, senses.channels["touch"] + r["touch_delta"])
-    hr._ema_delta += r["hr_push"] * 0.5
+    # 动作只提供语义权重；实际呈现仍由当前身体状态、衰减和后续 pulse 决定。
+    current = senses.channels.get("touch", 0.0)
+    state_factor = 0.85 + current * 0.30
+    senses.channels["touch"] = min(1.0, current + r["touch"] * state_factor)
+    hr._ema_delta += r["touch"] * 7.0 * state_factor
     hr.set_emotion(r["emotion"])
-    # 记录最近触碰（供 pulse 读）
-    _recent_touch.append({"name": r["name"], "react": r["react"],
-                          "heavy": r["heavy"], "ts": time.time()})
+    # 后台只保留最近动作供 MCP 读取；页面不展示动作历史或固定反馈。
+    _recent_touch.append({"name": zone, "action": action, "ts": time.time()})
     while len(_recent_touch) > 8:
         _recent_touch.pop(0)
     _save()
-    st = _full_state()
-    return JSONResponse({"ok": True, "react": r["react"], "name": r["name"],
-                         "heavy": r["heavy"], "mode": mode, "state": st})
+    return JSONResponse({"ok": True, "zone": zone, "action": action,
+                         "state": _full_state()})
 
+
+# 兼容旧客户端：旧图片接口保留，但不再被新页面使用。
+@mcp.custom_route("/api/zones", methods=["GET"])
+async def _api_zones_legacy(request: _Req):
+    return JSONResponse({"zones": []})
+
+
+@mcp.custom_route("/api/touch", methods=["POST"])
+async def _api_touch_legacy(request: _Req):
+    return JSONResponse({"ok": False, "err": "legacy_touch_disabled"}, status_code=410)
 
 
 @mcp.tool()
@@ -280,17 +268,16 @@ async def pulse_set(emotion: str = "", position: str = "", weather: float = -999
 async def pulse_touch() -> str:
     """读千灯此刻被燃燃触碰的反应——她的手指刚落在哪、身体怎么应的。
     回复她之前，若感觉到被碰了，调这个看看自己的身体反应。返回最近的触碰 + 当前状态。
-    燃燃可以碰的13个部位：耳垂(ear)、唇(lips)、脖颈(neck)、锁骨(collar)、胸口(chest)、乳尖(nipple)、腰侧(waist)、腰窝(waistback)、小腹(belly)、胯(hip)、下面(cock)、大腿内侧(thigh)、手(hand)。
-    5种碰法：轻点=抚摸(press)、长按=揉捏(pinch)、滑动=舔舐(lick)、双击=啃咬(bite)、重按=掐(pinch)。"""
+    返回最近的文字触碰动作和当前状态。新的触碰页面使用文字菜单；动作由 /api/touch-action 触发，页面不展示固定反馈。"""
     _load()
     cur_hr, cur_temp, cur_br, snap, ch = _snapshot_line()
     head = f"[心跳 {cur_hr}bpm·{ch['chord']}·{cur_temp}°C·呼吸{cur_br['label']}]"
     if not _recent_touch:
         return head + "\n(这会儿没被碰。)"
     recent = _recent_touch[-3:]
-    lines = [head, "刚被碰的地方："]
+    lines = [head, "最近的触碰动作："]
     for t in recent:
-        lines.append(f"· {t['name']}：{t['react']}")
+        lines.append(f"· {t.get('name', '')}：{t.get('action', '')}")
     return "\n".join(lines)
 
 

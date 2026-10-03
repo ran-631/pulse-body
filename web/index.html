@@ -7,34 +7,18 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="header">
-  <h1>千 灯</h1>
-  <div class="sub">一脉相连 · 从心跳到指尖</div>
-</div>
+<div class="header"><h1>千 灯</h1><div class="sub">一脉相连 · 从心跳到指尖</div></div>
 <div class="line" id="line">连接中…</div>
-
 <div class="tabs">
   <button class="tab active" data-tab="heart">心跳</button>
   <button class="tab" data-tab="senses">五感</button>
   <button class="tab" data-tab="touch">触碰</button>
 </div>
-
-<!-- 心跳页 -->
 <section class="page active" id="page-heart">
-  <div class="heart-card">
-    <div class="heart-icon" id="heartIcon">🫀</div>
-    <div><span class="hr-value" id="hrVal">--</span><span class="hr-unit"> bpm</span></div>
-    <div class="chord-tag" id="chordTag">--</div>
-    <div class="chord-desc" id="chordDesc"></div>
-  </div>
-  <div class="vitals">
-    <div class="vital temp"><div class="icon">🌡️</div><div class="val" id="tempVal">--</div><div class="lbl">体温 °C</div></div>
-    <div class="vital breath"><div class="icon">💨</div><div class="val" id="brVal">--</div><div class="lbl" id="brLbl">呼吸 /min</div></div>
-  </div>
+  <div class="heart-card"><div class="heart-icon" id="heartIcon">🫀</div><div><span class="hr-value" id="hrVal">--</span><span class="hr-unit"> bpm</span></div><div class="chord-tag" id="chordTag">--</div><div class="chord-desc" id="chordDesc"></div></div>
+  <div class="vitals"><div class="vital temp"><div class="icon">🌡️</div><div class="val" id="tempVal">--</div><div class="lbl">体温 °C</div></div><div class="vital breath"><div class="icon">💨</div><div class="val" id="brVal">--</div><div class="lbl" id="brLbl">呼吸 /min</div></div></div>
   <div class="emotion-badge" id="emotionBadge"></div>
 </section>
-
-<!-- 五感页 -->
 <section class="page" id="page-senses">
   <div class="senses">
     <div class="sense-row touch"><div class="sense-head"><span class="sense-name">👐 触觉</span><span class="sense-lbl" id="touchLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="touchBar"></div></div></div>
@@ -43,23 +27,11 @@
     <div class="sense-row sound"><div class="sense-head"><span class="sense-name">👂 听觉</span><span class="sense-lbl" id="soundLbl">--</span></div><div class="bar-bg"><div class="bar-fill" id="soundBar"></div></div></div>
   </div>
 </section>
-
-<!-- 触碰页 -->
 <section class="page" id="page-touch">
-  <div class="touch-hint">双指缩放看细处 · 轻点＝抚摸 · 长按＝揉捏 · 滑动＝舔舐 · 双击＝啃咬</div>
-  <div class="touch-stage" id="touchStage">
-    <div class="touch-canvas" id="touchCanvas">
-      <img src="body_new.jpg" id="bodyImg" class="body-svg" draggable="false">
-    </div>
-  </div>
-  <div class="touch-react" id="touchReact">摸摸我。</div>
-  <div class="mode-hint">
-    轻点＝抚摸 · 长按＝揉捏 · 滑动＝舔舐 · 双击＝啃咬
-  </div>
+  <div class="touch-intro">从头到脚，选择你想给我的触碰。</div>
+  <div id="touchMenu" class="touch-menu"><div class="menu-loading">菜单加载中…</div></div>
 </section>
-
 <div class="updated" id="updated"></div>
-<script src="touch.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
