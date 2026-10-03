@@ -12,7 +12,7 @@
 打开根路径即可看到实时身体状态，每 3 秒刷新。
 
 ## API
-- `GET /api/state` — 当前完整身体状态
+- `GET /api/state` — 当前完整身体状态（按需读取）
 - `POST /api/message {text}` — 喂一句话，触发情绪检测+五感更新
 - `POST /api/emotion {emotion}` — 直接设情绪
 - `POST /api/position {position}` — 切换体位
@@ -20,3 +20,6 @@
 - `POST /api/spike` — 触发心率突刺（惊吓）
 
 一脉相连，从心跳到指尖。
+
+## 身体感知调用策略
+普通日常对话不强制调用 Myheart/Pulse。只有明确需要身体感知时才按需读取，例如闻、听、尝、触碰、身体状态或亲密互动。
