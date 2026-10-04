@@ -78,7 +78,13 @@ def _snapshot_line():
     return cur_hr, cur_temp, cur_br, snap, ch
 
 
-mcp = FastMCP("pulse-body", host="0.0.0.0", port=PORT)
+mcp = FastMCP(
+    "pulse-body",
+    host="0.0.0.0",
+    port=PORT,
+    json_response=True,
+    stateless_http=True,
+)
 
 # ---- 同端口挂网页看板 + JSON API（照 OB 的 custom_route 做法）----
 from starlette.responses import JSONResponse, FileResponse, PlainTextResponse
